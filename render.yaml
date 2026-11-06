@@ -1,0 +1,30 @@
+databases:
+  - name: attendiq-db
+    databaseName: attendiq
+    user: attendiq
+    plan: free
+    region: frankfurt
+
+services:
+  - type: web
+    name: attendiq
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    autoDeployTrigger: commit
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: attendiq-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "false"
+      - key: PYTHON_VERSION
+        value: "3.12.10"
+      - key: WEB_CONCURRENCY
+        value: "1"
